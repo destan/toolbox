@@ -94,6 +94,7 @@ The expected audit effects are estimates from the audit paths. Unverified: the e
 6. In `Dockerfile`, change `node:lts-alpine` to `node:26-alpine`.
 7. In `Dockerfile`, change `npm install -g pnpm` to `npm install -g pnpm@9.15.9`.
 8. Update the GitHub Actions in the table below.
+9. In the Workers Builds settings, set `SKIP_DEPENDENCY_INSTALL` to `true`. Set the build command to `npm install -g pnpm@9.15.9 && pnpm install --frozen-lockfile && pnpm build`.
 
 `pnpm/action-setup` reads the pnpm version from `packageManager` when the workflow omits the `version` input. Its v6.1.1 README documents this behavior.
 
@@ -115,7 +116,7 @@ The table lists the latest tags from `git ls-remote` on 2026-11-04. The pinned `
 Unverified items for this phase:
 
 - The breaking changes in each action. Read the release notes of each action before the update.
-- Node 26 support in Cloudflare Workers Builds. Check the Node version in the build log of the preview deployment.
+- Node 26 in Cloudflare Workers Builds. The build image accepts any Node version through `.nvmrc`, but preinstalls only Node 22.23.4 and 24.22.1. Workers Builds runs pnpm through corepack, and Node 26 does not include corepack. Check pnpm's install output in the first build log after the phase merges.
 - The Vite 4 and Vitest 0.34 toolchain on Node 26. If the verification procedure fails, move steps 1, 2, and 6 after phase 2.
 - Corepack in the `node:26-alpine` image. Step 7 does not depend on it.
 
