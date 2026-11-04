@@ -56,10 +56,30 @@ async function announce(message: string) {
   announcement.value = message;
 }
 
+// Firefox scrolls a textarea to the end of a selection set by script, so selecting all would jump to the bottom.
+// The scroll position is restored right away and again on the next frame, in case the browser scrolls later.
+function changeSelectionKeepingScroll(textarea: HTMLTextAreaElement, changeSelection: () => void) {
+  const { scrollTop, scrollLeft } = textarea;
+  const restoreScroll = () => {
+    textarea.scrollTop = scrollTop;
+    textarea.scrollLeft = scrollLeft;
+  };
+
+  changeSelection();
+  restoreScroll();
+  requestAnimationFrame(restoreScroll);
+}
+
+function selectAllKeepingScroll(textarea: HTMLTextAreaElement) {
+  changeSelectionKeepingScroll(textarea, () => textarea.select());
+}
+
 function selectOutput() {
   const textarea = outputField.value?.textareaRef;
-  textarea?.focus();
-  textarea?.select();
+  if (textarea) {
+    textarea.focus();
+    selectAllKeepingScroll(textarea);
+  }
 }
 
 async function copyOutput() {
@@ -100,10 +120,7 @@ function prepareMouseSelection(event: MouseEvent) {
     return;
   }
 
-  const { scrollTop, scrollLeft } = target;
-  target.setSelectionRange(target.selectionStart, target.selectionStart);
-  target.scrollTop = scrollTop;
-  target.scrollLeft = scrollLeft;
+  changeSelectionKeepingScroll(target, () => target.setSelectionRange(target.selectionStart, target.selectionStart));
 }
 
 function selectAllOnFocus(event: FocusEvent) {
@@ -111,7 +128,7 @@ function selectAllOnFocus(event: FocusEvent) {
   isMouseFocus = false;
 
   if (!focusedByMouse && event.target instanceof HTMLTextAreaElement) {
-    event.target.select();
+    selectAllKeepingScroll(event.target);
   }
 }
 
@@ -119,7 +136,7 @@ function selectAllOnClick(event: MouseEvent) {
   isMouseFocus = false;
   const target = event.target;
   if (target instanceof HTMLTextAreaElement && target.selectionStart === target.selectionEnd) {
-    target.select();
+    selectAllKeepingScroll(target);
   }
 }
 </script>

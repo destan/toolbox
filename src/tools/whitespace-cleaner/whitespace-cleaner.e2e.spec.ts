@@ -145,21 +145,29 @@ test.describe('Tool - Whitespace cleaner', () => {
     await dragAcrossFirstLine();
   });
 
-  test('U4 keeps the scroll position when a press collapses the selection', async ({ page }) => {
+  test('U4 keeps the scroll position when a click selects all', async ({ page }) => {
     await page.getByTestId('input').fill(Array.from({ length: 200 }, (_, index) => `line ${index}`).join('\n'));
     const output = page.getByTestId('output');
     await expect(output).toHaveValue(/line 199$/);
 
+    // Waiting two frames lets a scroll that the browser applies after a selection change take effect.
+    const waitForFrames = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+
     await output.click();
+    await waitForFrames();
     await output.evaluate((element: HTMLTextAreaElement) => {
       element.scrollTop = 1000;
     });
 
+    // The press collapses the full selection, and the click selects all again.
     const box = await output.boundingBox();
     await page.mouse.move(box!.x + 20, box!.y + 40);
     await page.mouse.down();
     await page.mouse.up();
+    await waitForFrames();
 
+    const selection = await getOutputSelection(page);
+    expect(selection).toEqual({ start: 0, end: selection.length, length: selection.length });
     expect(await output.evaluate((element: HTMLTextAreaElement) => element.scrollTop)).toBe(1000);
   });
 
