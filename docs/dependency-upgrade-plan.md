@@ -128,8 +128,21 @@ Unverified items for this phase:
 4. Update `@vue/test-utils` from 2.3.2 to 2.5.1.
 5. Remove `@types/dompurify`. npm marks it deprecated because `dompurify` ships its own types.
 6. Remove `@types/figlet`. npm marks it deprecated because `figlet` ships its own types.
-7. Remove the `@unhead/vue>@vueuse/shared` override from `package.json` and run `pnpm install`. `@vueuse/shared` 15 requires Vue 3.5, so the override has no purpose after step 1. Keep the override if the install reports a peer conflict.
-8. Update the packages in the table below.
+7. Keep the `@unhead/vue>@vueuse/shared` override in `package.json`. Phase 5 removes it.
+8. Update `typescript` from 5.2.2 to 5.4.5.
+9. Update `vue-tsc` from 1.8.1 to 1.8.27.
+10. In `src/modules/command-palette/command-palette.vue`, call `activateOption` only when the selected option exists.
+11. In `src/tools/string-obfuscator/string-obfuscator.model.ts`, replace `get` from `@vueuse/core` with `toValue` from `vue`.
+12. Update the packages in the table below.
+
+`@vueuse/head` 1.0.0 depends on `@unhead/vue` 0.5.1. `@unhead/vue` 0.5.1 imports `resolveUnref` from `@vueuse/shared`. Without the override, pnpm resolves `@vueuse/shared` 15.0.0, which does not export `resolveUnref`. `pnpm build` then fails.
+
+The Vue 3.5 type definitions use the `NoInfer` type, which TypeScript 5.2 does not provide. `vue-tsc` 1.8.27 crashed on every TypeScript release from 5.5.4 to 5.9.3. TypeScript 5.4.5 is the newest release that works with `vue-tsc` 1.8.27.
+
+The Vue 3.5 types exposed two type errors in the application code:
+
+- The command palette passed `undefined` to `activateOption` when the user pressed Enter with no matching option. `activateOption` then threw a `TypeError`.
+- The `get` function of VueUse 10 does not accept the Vue 3.5 `MaybeRef` type.
 
 | Package | From | To |
 |---|---|---|
@@ -216,8 +229,8 @@ Alternative: split Vite and Vitest into two pull requests. Unverified: `vitest` 
 
 ### Phase 4: Type checking toolchain
 
-1. Update `vue-tsc` from 1.8.1 to 3.3.14.
-2. Update `typescript` from 5.2.2 to 7.0.2.
+1. Update `vue-tsc` from 1.8.27 to 3.3.14.
+2. Update `typescript` from 5.4.5 to 7.0.2.
 3. Fall back to `typescript` 6.0.3 if `vue-tsc` fails with 7.0.2. `vue-tsc` 3.3.14 declares `typescript >=5.0.0`. Unverified: `vue-tsc` support for TypeScript 7.
 4. Update `@vue/tsconfig` from 0.4.0 to 0.9.1.
 5. Replace `@tsconfig/node18` with `@tsconfig/node26` 26.0.1.
@@ -229,6 +242,7 @@ Alternative: split Vite and Vitest into two pull requests. Unverified: `vitest` 
 3. Update `vue-i18n` from 9.14.5 to 11.4.18. `src/plugins/i18n.plugin.ts` creates the i18n instance. One high advisory has no fixed version in any release.
 4. Update `@vueuse/core` and `@vueuse/router` from 10 to 15.
 5. Replace `@vueuse/head` with `@unhead/vue` 3.4.3. `src/main.ts` and four pages and layouts use it. This step removes the `"@vueuse/shared": "latest"` dependency that the phase 1 override works around.
+6. Remove the `@unhead/vue>@vueuse/shared` override from `package.json`.
 
 ### Phase 6: Application libraries with advisories
 
