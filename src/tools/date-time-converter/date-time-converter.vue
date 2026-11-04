@@ -11,7 +11,6 @@ import {
   isDate,
   isValid,
   parseISO,
-  parseJSON,
 } from 'date-fns';
 import { useValidation } from '@/composable/validation';
 import { withDefaultOnError } from '@/utils/defaults';
@@ -73,7 +72,7 @@ const formats: DateFormat[] = [
   {
     name: 'Timestamp',
     fromDate: date => String(getTime(date)),
-    toDate: ms => parseJSON(+ms),
+    toDate: ms => new Date(+ms),
     formatMatcher: date => isTimestamp(date),
   },
   {

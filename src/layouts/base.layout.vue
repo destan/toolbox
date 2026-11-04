@@ -19,6 +19,7 @@ const styleStore = useStyleStore();
 const { isMenuCollapsed, isSmallScreen } = storeToRefs(styleStore);
 const version = config.app.version;
 const commitSha = config.app.lastCommitSha.slice(0, 7);
+const isDevelopment = computed(() => config.app.env === 'development');
 const repositoryUrl = 'https://github.com/destan/toolbox';
 const sourceUrl = commitSha ? `${repositoryUrl}/tree/${commitSha}` : repositoryUrl;
 
@@ -118,7 +119,7 @@ const tools = computed<ToolCategory[]>(() => [
         </c-tooltip>
 
         <c-tooltip :tooltip="$t('home.uiLib')" position="bottom">
-          <c-button v-if="config.app.env === 'development'" to="/c-lib" circle variant="text" :aria-label="$t('home.uiLib')">
+          <c-button v-if="isDevelopment" to="/c-lib" circle variant="text" :aria-label="$t('home.uiLib')">
             <icon-mdi:brush-variant text-20px />
           </c-button>
         </c-tooltip>

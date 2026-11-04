@@ -2,7 +2,6 @@
   "extends": "@tsconfig/node26/tsconfig.json",
   "include": ["vite.config.*"],
   "compilerOptions": {
-    "composite": true,
     "noEmit": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.vite-config.tsbuildinfo",
     "module": "ESNext",

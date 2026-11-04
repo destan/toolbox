@@ -4,19 +4,23 @@ import {
   capitalCase,
   constantCase,
   dotCase,
-  headerCase,
+  kebabCase,
   noCase,
-  paramCase,
   pascalCase,
   pathCase,
   sentenceCase,
   snakeCase,
+  split,
+  trainCase,
 } from 'change-case';
 import InputCopyable from '../../components/InputCopyable.vue';
 
+// eslint-disable-next-line regexp/no-obscure-range, regexp/no-dupe-characters-character-class -- The Latin-1 ranges keep accented letters.
+const nonLetterRegexp = /[^A-ZØ-öø-ÿ]+/gi;
+
 const baseConfig = {
-  // eslint-disable-next-line regexp/no-obscure-range, regexp/no-dupe-characters-character-class -- The Latin-1 ranges keep accented letters.
-  stripRegexp: /[^A-ZØ-öø-ÿ]+/gi,
+  // Treat every character other than a letter as a word separator, like the stripRegexp option of change-case 4.
+  split: (value: string) => split(value.replace(nonLetterRegexp, ' ')),
 };
 
 const input = ref('lorem ipsum dolor sit amet');
@@ -48,7 +52,7 @@ const formats = computed(() => [
   },
   {
     label: 'Headercase:',
-    value: headerCase(input.value, baseConfig),
+    value: trainCase(input.value, baseConfig),
   },
   {
     label: 'Nocase:',
@@ -56,7 +60,7 @@ const formats = computed(() => [
   },
   {
     label: 'Paramcase:',
-    value: paramCase(input.value, baseConfig),
+    value: kebabCase(input.value, baseConfig),
   },
   {
     label: 'Pascalcase:',
