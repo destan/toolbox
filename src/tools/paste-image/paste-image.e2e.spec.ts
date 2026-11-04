@@ -33,6 +33,12 @@ async function installTestHelpers(page: Page) {
   });
 }
 
+// The router loads the tool lazily, so the page "load" event can fire before the tool listens for paste events.
+// The tool registers its paste listener before it renders, so a visible tool button means pastes are handled.
+async function waitForTool(page: Page) {
+  await expect(page.getByTestId('paste-from-clipboard')).toBeVisible();
+}
+
 async function pasteImage(page: Page) {
   await page.evaluate(async () => {
     const file = new File([await window.createTestPng()], 'image.png', { type: 'image/png' });
@@ -48,6 +54,7 @@ test.describe('Tool - Paste image', () => {
   test.beforeEach(async ({ page }) => {
     await installTestHelpers(page);
     await page.goto('/paste-image');
+    await waitForTool(page);
   });
 
   test('Has title', async ({ page }) => {
@@ -99,6 +106,7 @@ test.describe('Tool - Paste image', () => {
   test('An invalid stored format falls back to PNG', async ({ page }) => {
     await page.evaluate(() => localStorage.setItem('paste-image:format', 'gif'));
     await page.reload();
+    await waitForTool(page);
 
     await pasteImage(page);
 
