@@ -19,6 +19,15 @@ docker build -t toolbox .
 docker run -d --name toolbox --restart unless-stopped -p 8080:80 toolbox
 ```
 
+### Build variables
+
+The build reads these optional environment variables:
+
+| Variable          | Default                                                                       | Purpose                                                                    |
+| ----------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `VITE_APP_ENV`    | The Vite mode: `production` for `pnpm build`, `development` for `pnpm dev`    | Shows development-only pages, such as the UI library, when `development`. |
+| `VITE_COMMIT_SHA` | `WORKERS_CI_COMMIT_SHA`, which Cloudflare Workers Builds sets                 | Links the footer version to the built commit.                              |
+
 ## Contribute
 
 ### Recommended IDE Setup
