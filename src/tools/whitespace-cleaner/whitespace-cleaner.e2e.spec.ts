@@ -32,7 +32,7 @@ test.describe('Tool - Whitespace cleaner', () => {
   });
 
   test('Has correct title', async ({ page }) => {
-    await expect(page).toHaveTitle('Whitespace cleaner - IT Tools');
+    await expect(page).toHaveTitle('Whitespace cleaner - Toolbox');
   });
 
   test('U1 updates the output on input with no button press', async ({ page }) => {
