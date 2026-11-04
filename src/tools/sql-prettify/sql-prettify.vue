@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { type FormatOptionsWithLanguage, format as formatSQL } from 'sql-formatter';
+import type { FormatOptionsWithLanguage } from 'sql-formatter';
+import { format as formatSQL } from 'sql-formatter';
 import TextareaCopyable from '@/components/TextareaCopyable.vue';
 import { useStyleStore } from '@/stores/style.store';
 

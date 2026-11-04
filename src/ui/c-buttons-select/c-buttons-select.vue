@@ -1,15 +1,16 @@
 <script setup lang="ts" generic="T extends unknown">
-import _ from 'lodash';
 import type { CLabelProps } from '../c-label/c-label.types';
 import type { CButtonSelectOption } from './c-buttons-select.types';
+import _ from 'lodash';
 
 const props = withDefaults(
   defineProps<{
     options?: readonly CButtonSelectOption<T>[] | readonly string[] | Record<string, T>
     value?: T
     size?: 'small' | 'medium' | 'large'
-  } & CLabelProps >(),
+  } & CLabelProps>(),
   {
+    // eslint-disable-next-line vue/require-valid-default-prop -- The rule does not recognize readonly array types as arrays.
     options: () => [],
     value: undefined,
     labelPosition: 'left',

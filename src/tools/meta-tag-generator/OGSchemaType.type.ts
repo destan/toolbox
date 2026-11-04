@@ -1,6 +1,6 @@
 import type { CSelectOption } from '@/ui/c-select/c-select.types';
 
-export type { OGSchemaType, OGSchemaTypeElementInput, OGSchemaTypeElementSelect, OGSchemaTypeElementInputMultiple };
+export type { OGSchemaType, OGSchemaTypeElementInput, OGSchemaTypeElementInputMultiple, OGSchemaTypeElementSelect };
 
 interface OGSchemaTypeElementBase {
   key: string

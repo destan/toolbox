@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import type { CKeyValueListItems } from '@/ui/c-key-value-list/c-key-value-list.types';
 import { extractIBAN, friendlyFormatIBAN, isQRIBAN, validateIBAN } from 'ibantools';
 import { getFriendlyErrors } from './iban-validator-and-parser.service';
-import type { CKeyValueListItems } from '@/ui/c-key-value-list/c-key-value-list.types';
 
 const rawIban = ref('');
 

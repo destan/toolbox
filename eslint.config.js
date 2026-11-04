@@ -34,4 +34,11 @@ export default antfu(
       }],
     },
   },
+  {
+    // Playwright locators have an innerText() method, which the rule mistakes for the DOM property.
+    files: ['**/*.e2e.spec.ts'],
+    rules: {
+      'unicorn/prefer-dom-node-text-content': 'off',
+    },
+  },
 );
