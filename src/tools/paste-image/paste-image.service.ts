@@ -1,15 +1,25 @@
 import { format as formatDate } from 'date-fns';
+import { getExtensionFromMimeType } from '@/composable/downloadBase64';
 
 export {
   outputFormats,
+  defaultOutputFormat,
+  defaultQuality,
+  isOutputFormat,
+  clampQuality,
   getDefaultFileName,
-  getExtensionFromMimeType,
+  getUniqueFileName,
+  getFileExtension,
+  getTypeLabel,
+  isFallbackOutput,
+  formatSizeDelta,
   getImageFromDataTransfer,
   readImageFromClipboard,
+  readImageDimensions,
   convertImage,
   blobToDataUrl,
   writeImageToClipboard,
-  getSizeDelta,
+  writeDataUrlToClipboard,
 };
 
 export type OutputFormat = 'png' | 'jpeg' | 'webp';
@@ -20,26 +30,66 @@ const outputFormats: Record<OutputFormat, { label: string; mimeType: string; isL
   webp: { label: 'WebP', mimeType: 'image/webp', isLossy: true },
 };
 
-const extensionsByMimeType: Record<string, string> = {
-  'image/png': 'png',
-  'image/jpeg': 'jpg',
-  'image/webp': 'webp',
-  'image/gif': 'gif',
-  'image/bmp': 'bmp',
-  'image/avif': 'avif',
-  'image/svg+xml': 'svg',
-  'image/tiff': 'tiff',
-};
+const defaultOutputFormat: OutputFormat = 'png';
+const defaultQuality = 90;
+
+function isOutputFormat(value: unknown): value is OutputFormat {
+  return typeof value === 'string' && Object.keys(outputFormats).includes(value);
+}
+
+function clampQuality(value: unknown) {
+  const quality = Number(value);
+
+  if (!Number.isFinite(quality)) {
+    return defaultQuality;
+  }
+
+  return Math.min(100, Math.max(1, Math.round(quality)));
+}
 
 function getDefaultFileName({ date }: { date: Date }) {
   return `pasted-image-${formatDate(date, 'yyyyMMdd-HHmmss')}`;
 }
 
-function getExtensionFromMimeType(mimeType: string) {
-  return extensionsByMimeType[mimeType] ?? mimeType.replace(/^image\//, '').replace(/\+.*$/, '');
+function getUniqueFileName({ fileName, existingFileNames }: { fileName: string; existingFileNames: string[] }) {
+  if (!existingFileNames.includes(fileName)) {
+    return fileName;
+  }
+
+  let suffix = 2;
+  while (existingFileNames.includes(`${fileName}-${suffix}`)) {
+    suffix++;
+  }
+
+  return `${fileName}-${suffix}`;
 }
 
-function getImageFromDataTransfer(dataTransfer: DataTransfer | null | undefined): File | undefined {
+function getFileExtension(mimeType: string) {
+  // mime-types returns "jpeg", but "jpg" is the extension most tools and people expect.
+  if (mimeType === 'image/jpeg') {
+    return 'jpg';
+  }
+
+  return getExtensionFromMimeType(mimeType) || mimeType.replace(/^image\//, '').replace(/\+.*$/, '');
+}
+
+function getTypeLabel(mimeType: string) {
+  const outputFormat = Object.values(outputFormats).find(format => format.mimeType === mimeType);
+
+  return outputFormat?.label ?? getFileExtension(mimeType).toUpperCase();
+}
+
+function isFallbackOutput({ output, format }: { output: Blob; format: OutputFormat }) {
+  return output.type !== outputFormats[format].mimeType;
+}
+
+function formatSizeDelta({ originalSize, outputSize }: { originalSize: number; outputSize: number }) {
+  const delta = originalSize === 0 ? 0 : Math.round(((outputSize - originalSize) / originalSize) * 100);
+
+  return `${delta > 0 ? '+' : ''}${delta}%`;
+}
+
+function getImageFromDataTransfer(dataTransfer: Pick<DataTransfer, 'items'> | null | undefined): File | undefined {
   if (!dataTransfer) {
     return undefined;
   }
@@ -63,6 +113,14 @@ async function readImageFromClipboard(): Promise<Blob | undefined> {
   return undefined;
 }
 
+async function readImageDimensions(source: Blob) {
+  const bitmap = await createImageBitmap(source);
+  const { width, height } = bitmap;
+  bitmap.close();
+
+  return { width, height };
+}
+
 function canvasToBlob({ canvas, mimeType, quality }: { canvas: HTMLCanvasElement; mimeType: string; quality?: number }) {
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
@@ -73,12 +131,7 @@ function canvasToBlob({ canvas, mimeType, quality }: { canvas: HTMLCanvasElement
   });
 }
 
-async function convertImage({ source, image, format, quality }: {
-  source: Blob
-  image: CanvasImageSource & { width: number; height: number }
-  format: OutputFormat
-  quality: number
-}): Promise<Blob> {
+async function convertImage({ source, format, quality }: { source: Blob; format: OutputFormat; quality: number }): Promise<Blob> {
   const { mimeType, isLossy } = outputFormats[format];
 
   // Re-encoding a lossless image into the same lossless format gains nothing, so the original bytes are kept.
@@ -86,25 +139,37 @@ async function convertImage({ source, image, format, quality }: {
     return source;
   }
 
+  // The image is decoded only for the conversion, so the history does not keep decoded pixels in memory.
+  const bitmap = await createImageBitmap(source);
   const canvas = document.createElement('canvas');
-  canvas.width = image.width;
-  canvas.height = image.height;
 
-  const context = canvas.getContext('2d');
+  try {
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
 
-  if (!context) {
-    throw new Error('The browser could not create a canvas to convert the image.');
+    const context = canvas.getContext('2d');
+
+    if (!context) {
+      throw new Error('The browser could not create a canvas to convert the image.');
+    }
+
+    // JPEG has no alpha channel, so transparent pixels would turn black without a white background.
+    if (format === 'jpeg') {
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    context.drawImage(bitmap, 0, 0);
+    bitmap.close();
+
+    return await canvasToBlob({ canvas, mimeType, quality: isLossy ? quality / 100 : undefined });
   }
-
-  // JPEG has no alpha channel, so transparent pixels would turn black without a white background.
-  if (format === 'jpeg') {
-    context.fillStyle = '#ffffff';
-    context.fillRect(0, 0, canvas.width, canvas.height);
+  finally {
+    bitmap.close();
+    // A zero-sized canvas releases its pixel buffer without waiting for garbage collection.
+    canvas.width = 0;
+    canvas.height = 0;
   }
-
-  context.drawImage(image, 0, 0);
-
-  return canvasToBlob({ canvas, mimeType, quality: isLossy ? quality / 100 : undefined });
 }
 
 function blobToDataUrl(blob: Blob) {
@@ -116,18 +181,27 @@ function blobToDataUrl(blob: Blob) {
   });
 }
 
-async function writeImageToClipboard({ source, image }: { source: Blob; image: CanvasImageSource & { width: number; height: number } }) {
+function canWriteClipboardItems() {
+  return typeof ClipboardItem !== 'undefined' && typeof navigator.clipboard?.write === 'function';
+}
+
+// Each value goes into the ClipboardItem as an unresolved promise.
+// Safari rejects the write once an await before it has consumed the user gesture.
+
+async function writeImageToClipboard({ source }: { source: Blob }) {
   // Browsers only guarantee clipboard support for PNG images.
-  // The promise goes into the ClipboardItem unresolved, because Safari rejects the write once the user gesture is lost to an await.
-  const pngBlob = convertImage({ source, image, format: 'png', quality: 100 });
+  const pngBlob = convertImage({ source, format: 'png', quality: 100 });
 
   await navigator.clipboard.write([new ClipboardItem({ 'image/png': pngBlob })]);
 }
 
-function getSizeDelta({ originalSize, outputSize }: { originalSize: number; outputSize: number }) {
-  if (originalSize === 0) {
-    return 0;
+async function writeDataUrlToClipboard({ source, writeText }: { source: Blob; writeText: (text: string) => Promise<void> }) {
+  if (!canWriteClipboardItems()) {
+    await writeText(await blobToDataUrl(source));
+    return;
   }
 
-  return Math.round(((outputSize - originalSize) / originalSize) * 100);
+  const textBlob = blobToDataUrl(source).then(dataUrl => new Blob([dataUrl], { type: 'text/plain' }));
+
+  await navigator.clipboard.write([new ClipboardItem({ 'text/plain': textBlob })]);
 }

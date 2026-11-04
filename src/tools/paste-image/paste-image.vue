@@ -2,14 +2,22 @@
 import { useMessage } from 'naive-ui';
 import {
   type OutputFormat,
-  blobToDataUrl,
+  clampQuality,
   convertImage,
+  defaultOutputFormat,
+  defaultQuality,
+  formatSizeDelta,
   getDefaultFileName,
-  getExtensionFromMimeType,
+  getFileExtension,
   getImageFromDataTransfer,
-  getSizeDelta,
+  getTypeLabel,
+  getUniqueFileName,
+  isFallbackOutput,
+  isOutputFormat,
   outputFormats,
+  readImageDimensions,
   readImageFromClipboard,
+  writeDataUrlToClipboard,
   writeImageToClipboard,
 } from './paste-image.service';
 import { useCopy } from '@/composable/copy';
@@ -18,26 +26,46 @@ import { formatBytes } from '@/utils/convert';
 interface PastedImage {
   id: number
   source: Blob
-  bitmap: ImageBitmap
-  createdAt: Date
+  width: number
+  height: number
+  defaultFileName: string
   fileName: string
   output?: Blob
   outputFormat?: OutputFormat
   outputUrl?: string
+  conversionError?: string
   conversionId: number
 }
 
 const message = useMessage();
-const { copy } = useCopy({ text: 'Base64 data URL copied to the clipboard' });
+const { copy } = useCopy({ createToast: false });
 
-const format = useStorage<OutputFormat>('paste-image:format', 'png');
-const quality = useStorage('paste-image:quality', 90);
+// Stored values come from the viewer's browser and can be stale or edited, so they are validated on read.
+const storedFormat = useStorage<string>('paste-image:format', defaultOutputFormat);
+const format = computed<OutputFormat>({
+  get: () => (isOutputFormat(storedFormat.value) ? storedFormat.value : defaultOutputFormat),
+  set: (value) => {
+    storedFormat.value = value;
+  },
+});
+const storedQuality = useStorage<number>('paste-image:quality', defaultQuality);
+const quality = computed<number>({
+  get: () => clampQuality(storedQuality.value),
+  set: (value) => {
+    storedQuality.value = value;
+  },
+});
+
 const images = ref<PastedImage[]>([]);
 let nextImageId = 0;
+let isUnmounted = false;
+// Conversions run one at a time, so a format change does not decode the whole history at once.
+let conversionQueue = Promise.resolve();
 
 const formatOptions = Object.entries(outputFormats).map(([value, { label }]) => ({ value: value as OutputFormat, label }));
-const isLossyFormat = computed(() => outputFormats[format.value]?.isLossy ?? false);
+const isLossyFormat = computed(() => outputFormats[format.value].isLossy);
 const pasteShortcut = /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘ + V' : 'Ctrl + V';
+const noImageWarning = 'The clipboard has no image. Copy an image, then try again.';
 
 function isEditableTarget(target: EventTarget | null) {
   return target instanceof HTMLElement
@@ -50,14 +78,22 @@ function revokeOutputUrl(image: PastedImage) {
   }
 }
 
-async function updateOutput(image: PastedImage) {
-  const conversionId = ++image.conversionId;
+// A conversion is current while the image's conversionId still matches the one it was scheduled with.
+// Scheduling a newer conversion or removing the image changes the conversionId, so stale results are dropped.
+function invalidateOutput(image: PastedImage) {
+  return ++image.conversionId;
+}
+
+async function updateOutput(image: PastedImage, conversionId: number) {
+  if (conversionId !== image.conversionId) {
+    return;
+  }
+
   const outputFormat = format.value;
 
   try {
-    const output = await convertImage({ source: image.source, image: image.bitmap, format: outputFormat, quality: quality.value });
+    const output = await convertImage({ source: image.source, format: outputFormat, quality: quality.value });
 
-    // A newer conversion started while this one ran, so this result is stale.
     if (conversionId !== image.conversionId) {
       return;
     }
@@ -66,48 +102,64 @@ async function updateOutput(image: PastedImage) {
     image.output = markRaw(output);
     image.outputFormat = outputFormat;
     image.outputUrl = URL.createObjectURL(output);
+    image.conversionError = undefined;
   }
   catch (error) {
-    message.error(error instanceof Error ? error.message : 'The image could not be converted.');
+    if (conversionId === image.conversionId) {
+      image.conversionError = error instanceof Error ? error.message : 'The browser could not convert the image.';
+    }
   }
 }
 
+function scheduleOutput(image: PastedImage) {
+  const conversionId = invalidateOutput(image);
+  conversionQueue = conversionQueue.then(() => updateOutput(image, conversionId));
+}
+
 async function addImage(source: Blob) {
-  let bitmap: ImageBitmap;
+  let dimensions: { width: number; height: number };
 
   try {
-    bitmap = await createImageBitmap(source);
+    dimensions = await readImageDimensions(source);
   }
   catch {
     message.error('The browser could not read the pasted image.');
     return;
   }
 
-  const createdAt = new Date();
+  if (isUnmounted) {
+    return;
+  }
+
+  const defaultFileName = getUniqueFileName({
+    fileName: getDefaultFileName({ date: new Date() }),
+    existingFileNames: images.value.flatMap(({ fileName, defaultFileName }) => [fileName, defaultFileName]),
+  });
 
   images.value.unshift({
     id: nextImageId++,
     source: markRaw(source),
-    bitmap: markRaw(bitmap),
-    createdAt,
-    fileName: getDefaultFileName({ date: createdAt }),
+    ...dimensions,
+    defaultFileName,
+    fileName: defaultFileName,
     conversionId: 0,
   });
 
-  await updateOutput(images.value[0]);
+  scheduleOutput(images.value[0]);
+}
+
+function releaseImage(image: PastedImage) {
+  invalidateOutput(image);
+  revokeOutputUrl(image);
 }
 
 function removeImage(image: PastedImage) {
-  revokeOutputUrl(image);
-  image.bitmap.close();
+  releaseImage(image);
   images.value = images.value.filter(({ id }) => id !== image.id);
 }
 
 function clearImages() {
-  images.value.forEach((image) => {
-    revokeOutputUrl(image);
-    image.bitmap.close();
-  });
+  images.value.forEach(releaseImage);
   images.value = [];
 }
 
@@ -122,7 +174,7 @@ useEventListener(document, 'paste', (event: ClipboardEvent) => {
 
   // Text pasted into a field, such as the file name, is not meant for this tool.
   if (!isEditableTarget(event.target)) {
-    message.warning('The clipboard has no image. Copy an image, then paste it here.');
+    message.warning(noImageWarning);
   }
 });
 
@@ -136,7 +188,7 @@ async function pasteFromClipboard() {
     const image = await readImageFromClipboard();
 
     if (!image) {
-      message.warning('The clipboard has no image. Copy an image, then try again.');
+      message.warning(noImageWarning);
       return;
     }
 
@@ -152,16 +204,16 @@ async function pasteFromClipboard() {
   }
 }
 
-watch(format, () => images.value.forEach(updateOutput));
-watchDebounced(quality, () => images.value.forEach(updateOutput), { debounce: 200 });
+watch(format, () => images.value.forEach(scheduleOutput));
+watchDebounced(quality, () => images.value.forEach(scheduleOutput), { debounce: 200 });
 
-onBeforeUnmount(clearImages);
+onBeforeUnmount(() => {
+  isUnmounted = true;
+  clearImages();
+});
 
-function getOutputFileName(image: PastedImage) {
-  const fileName = image.fileName.trim() || getDefaultFileName({ date: image.createdAt });
-  const extension = getExtensionFromMimeType(image.output?.type ?? outputFormats[format.value].mimeType);
-
-  return `${fileName}.${extension}`;
+function getOutputExtension(image: PastedImage) {
+  return getFileExtension(image.output?.type ?? outputFormats[format.value].mimeType);
 }
 
 function downloadImage(image: PastedImage) {
@@ -171,13 +223,13 @@ function downloadImage(image: PastedImage) {
 
   const link = document.createElement('a');
   link.href = image.outputUrl;
-  link.download = getOutputFileName(image);
+  link.download = `${image.fileName.trim() || image.defaultFileName}.${getOutputExtension(image)}`;
   link.click();
 }
 
 async function copyImage(image: PastedImage) {
   try {
-    await writeImageToClipboard({ source: image.source, image: image.bitmap });
+    await writeImageToClipboard({ source: image.source });
     message.success('Image copied to the clipboard');
   }
   catch {
@@ -190,17 +242,13 @@ async function copyDataUrl(image: PastedImage) {
     return;
   }
 
-  await copy(await blobToDataUrl(image.output));
-}
-
-function isOutputFormatUnsupported(image: PastedImage) {
-  return image.output !== undefined && image.outputFormat !== undefined && image.output.type !== outputFormats[image.outputFormat].mimeType;
-}
-
-function getTypeLabel(blob: Blob) {
-  const outputFormat = Object.values(outputFormats).find(({ mimeType }) => mimeType === blob.type);
-
-  return outputFormat?.label ?? getExtensionFromMimeType(blob.type).toUpperCase();
+  try {
+    await writeDataUrlToClipboard({ source: image.output, writeText: copy });
+    message.success('Base64 data URL copied to the clipboard');
+  }
+  catch {
+    message.error('The browser could not copy the base64 data URL to the clipboard.');
+  }
 }
 </script>
 
@@ -251,29 +299,33 @@ function getTypeLabel(blob: Blob) {
       </div>
 
       <div mt-3 flex flex-wrap gap-x-4 gap-y-1 op-80>
-        <span>{{ image.bitmap.width }} × {{ image.bitmap.height }} px</span>
-        <span>Original: {{ getTypeLabel(image.source) }}, {{ formatBytes(image.source.size) }}</span>
+        <span>{{ image.width }} × {{ image.height }} px</span>
+        <span>Original: {{ getTypeLabel(image.source.type) }}, {{ formatBytes(image.source.size) }}</span>
         <span v-if="image.output" data-test-id="output-info">
-          Output: {{ getTypeLabel(image.output) }}, {{ formatBytes(image.output.size) }}
+          Output: {{ getTypeLabel(image.output.type) }}, {{ formatBytes(image.output.size) }}
           <template v-if="image.output !== image.source">
-            ({{ getSizeDelta({ originalSize: image.source.size, outputSize: image.output.size }) > 0 ? '+' : '' }}{{ getSizeDelta({ originalSize: image.source.size, outputSize: image.output.size }) }}%)
+            ({{ formatSizeDelta({ originalSize: image.source.size, outputSize: image.output.size }) }})
           </template>
         </span>
       </div>
 
-      <c-alert v-if="isOutputFormatUnsupported(image)" type="warning" mt-3>
-        Your browser cannot encode {{ outputFormats[image.outputFormat!].label }}. The image downloads as {{ getTypeLabel(image.output!) }}.
+      <c-alert v-if="image.conversionError" type="error" mt-3>
+        {{ image.conversionError }}
+      </c-alert>
+
+      <c-alert v-else-if="image.output && image.outputFormat && isFallbackOutput({ output: image.output, format: image.outputFormat })" type="warning" mt-3>
+        Your browser cannot encode {{ outputFormats[image.outputFormat].label }}. The image downloads as {{ getTypeLabel(image.output.type) }}.
       </c-alert>
 
       <div mt-3 flex flex-wrap items-center gap-2>
         <c-input-text
           v-model:value="image.fileName"
-          :placeholder="getDefaultFileName({ date: image.createdAt })"
+          :placeholder="image.defaultFileName"
           test-id="file-name"
           min-w-200px flex-1
         />
         <div op-60>
-          .{{ getExtensionFromMimeType(image.output?.type ?? outputFormats[format].mimeType) }}
+          .{{ getOutputExtension(image) }}
         </div>
       </div>
 
