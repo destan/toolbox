@@ -1,8 +1,12 @@
-<script lang="ts" setup>
+<script lang="ts" setup generic="T extends Record<string, unknown>">
 import _ from 'lodash';
 import type { HeaderConfiguration } from './c-table.types';
 
-const props = withDefaults(defineProps<{ data?: Record<string, unknown>[]; headers?: HeaderConfiguration ; hideHeaders?: boolean; description?: string }>(), { data: () => [], headers: undefined, hideHeaders: false, description: 'Data table' });
+const props = withDefaults(defineProps<{ data?: T[]; headers?: HeaderConfiguration ; hideHeaders?: boolean; description?: string }>(), { data: () => [], headers: undefined, hideHeaders: false, description: 'Data table' });
+
+defineSlots<{
+  [K in keyof T & string]?: (props: { row: T; headers: { key: string; label: string }[]; value: T[K] }) => unknown
+}>();
 const { data, headers: rawHeaders, hideHeaders } = toRefs(props);
 
 const headers = computed(() => {
@@ -54,7 +58,7 @@ const headers = computed(() => {
           }"
         >
           <td v-for="header in headers" :key="header.key" class="px-6 py-4">
-            <slot :name="header.key" :row="row" :headers="headers" :value="row[header.key]">
+            <slot :name="header.key" :row="row" :headers="headers" :value="row[header.key] as T[string]">
               {{ row[header.key] }}
             </slot>
           </td>

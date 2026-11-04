@@ -1,4 +1,4 @@
-import type { SelectGroupOption, SelectOption } from 'naive-ui';
+import type { CSelectOption } from '@/ui/c-select/c-select.types';
 
 export type { OGSchemaType, OGSchemaTypeElementInput, OGSchemaTypeElementSelect, OGSchemaTypeElementInputMultiple };
 
@@ -18,7 +18,7 @@ interface OGSchemaTypeElementInputMultiple extends OGSchemaTypeElementBase {
 
 interface OGSchemaTypeElementSelect extends OGSchemaTypeElementBase {
   type: 'select'
-  options: Array<SelectOption | SelectGroupOption>
+  options: CSelectOption<string>[]
 }
 
 interface OGSchemaType {
