@@ -1,5 +1,4 @@
-import type { MaybeRef } from '@vueuse/core';
-import type { Ref } from 'vue';
+import type { MaybeRef, Ref } from 'vue';
 import type { Tool, ToolCategory, ToolWithCategory } from './tools.types';
 import { get, useStorage } from '@vueuse/core';
 import _ from 'lodash';

@@ -1,4 +1,4 @@
-import type { MaybeRef } from '@vueuse/core';
+import type { MaybeRef } from 'vue';
 import { get } from '@vueuse/core';
 
 import yaml from 'yaml';

@@ -1,5 +1,4 @@
-import type { MaybeRef } from '@vueuse/core';
-import type { Ref } from 'vue';
+import type { MaybeRef, Ref } from 'vue';
 import { get } from '@vueuse/core';
 import _ from 'lodash';
 import { reactive, watch } from 'vue';
@@ -47,7 +46,7 @@ export function useValidation<T>({
   rules,
   watch: watchRefs = [],
 }: {
-  source: Ref<T>
+  source: Readonly<Ref<T>>
   rules: MaybeRef<UseValidationRule<T>[]>
   watch?: Ref<unknown>[]
 }) {

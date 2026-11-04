@@ -1,4 +1,4 @@
-import { createHead } from '@vueuse/head';
+import { createHead } from '@unhead/vue/client';
 import { createPinia } from 'pinia';
 import { registerSW } from 'virtual:pwa-register';
 

@@ -49,11 +49,11 @@
     "@tiptap/starter-kit": "2.1.6",
     "@tiptap/vue-3": "2.0.3",
     "@types/markdown-it": "^14.2.0",
+    "@unhead/vue": "^3.4.3",
     "@vicons/material": "^0.13.0",
     "@vicons/tabler": "^0.13.0",
-    "@vueuse/core": "^10.3.0",
-    "@vueuse/head": "^1.0.0",
-    "@vueuse/router": "^10.0.0",
+    "@vueuse/core": "^15.0.0",
+    "@vueuse/router": "^15.0.0",
     "bcryptjs": "^2.4.3",
     "change-case": "^4.1.2",
     "colord": "^2.10.0",
@@ -87,7 +87,7 @@
     "node-forge": "^1.4.3",
     "oui-data": "^1.0.10",
     "pdf-signature-reader": "^1.4.3",
-    "pinia": "^2.0.34",
+    "pinia": "^4.1.0",
     "plausible-tracker": "^0.3.9",
     "qrcode": "^1.5.4",
     "randexp": "^0.6.1",
@@ -98,8 +98,8 @@
     "unplugin-auto-import": "^21.1.0",
     "uuid": "^9.0.0",
     "vue": "^3.5.44",
-    "vue-i18n": "^9.14.5",
-    "vue-router": "^4.1.6",
+    "vue-i18n": "^11.4.18",
+    "vue-router": "^5.4.0",
     "vue-shadow-dom": "^4.2.0",
     "vue-tsc": "^3.3.14",
     "vuedraggable": "^4.1.0",
@@ -150,10 +150,5 @@
     "workbox-build": "^7.4.1",
     "workbox-window": "^7.4.1",
     "zx": "^7.2.1"
-  },
-  "pnpm": {
-    "overrides": {
-      "@unhead/vue>@vueuse/shared": "12.0.0"
-    }
   }
 }
