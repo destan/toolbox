@@ -312,6 +312,10 @@ tools:
     title: Thông tin thiết bị
     description: Lấy thông tin về thiết bị hiện tại của bạn (kích thước màn hình, tỷ lệ pixel, user agent, ...)
 
+  browser-headers:
+    title: Header của trình duyệt
+    description: Xem các header của yêu cầu HTTP mà dịch vụ HTTP echo của Beeceptor nhận được từ trình duyệt của bạn, cùng với địa chỉ IP công khai của bạn.
+
   pdf-signature-checker:
     title: Kiểm tra chữ ký PDF
     description: Xác minh chữ ký của một tệp PDF. Một tệp PDF đã được ký có chứa một hoặc nhiều chữ ký có thể được sử dụng để xác định xem nội dung của tệp đã được thay đổi kể từ khi tệp được ký.

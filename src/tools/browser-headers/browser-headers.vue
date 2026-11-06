@@ -1,30 +1,17 @@
 <script setup lang="ts">
-import type { EchoedRequest } from './browser-headers.service';
+import _ from 'lodash';
 import { useCopy } from '@/composable/copy';
+import { getErrorMessage } from '@/utils/error';
 import { fetchEchoedRequest, formatHeaders } from './browser-headers.service';
 
-const echoedRequest = ref<EchoedRequest>();
-const errorMessage = ref<string>();
-const isLoading = ref(false);
+const { state: echoedRequest, isLoading, error, execute: showHeaders } = useAsyncState(fetchEchoedRequest, undefined, {
+  immediate: false,
+  resetOnExecute: false,
+  onError: _.noop,
+});
 
 const headersText = computed(() => formatHeaders(echoedRequest.value?.headers ?? []));
 const { copy } = useCopy({ source: headersText, text: 'Headers copied to the clipboard' });
-
-async function showHeaders() {
-  isLoading.value = true;
-  echoedRequest.value = undefined;
-  errorMessage.value = undefined;
-
-  try {
-    echoedRequest.value = await fetchEchoedRequest();
-  }
-  catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : String(error);
-  }
-  finally {
-    isLoading.value = false;
-  }
-}
 </script>
 
 <template>
@@ -38,21 +25,30 @@ async function showHeaders() {
         and shows what the service received. Beeceptor receives your IP address and the request headers. The tool sends nothing until you click the button.
       </p>
       <p>
-        The result shows the headers of a cross-origin fetch request. A page load sends different values for some headers, such as Accept.
+        The result shows the headers of a cross-origin fetch request, not of a page load. A page load sends different values for some headers, such as Accept. This request also leaves out cookies and the Referer header.
+      </p>
+      <p>
+        Beeceptor capitalizes the header names and keeps one value of a repeated header, so the result can differ from what the browser sent.
       </p>
 
       <div flex justify-center>
-        <c-button :disabled="isLoading" @click="showHeaders">
-          Show my headers
+        <c-button :disabled="isLoading" @click="showHeaders()">
+          {{ isLoading ? 'Reading headers...' : 'Show my headers' }}
         </c-button>
       </div>
     </c-card>
 
-    <c-alert v-if="errorMessage" type="error" title="The tool could not read the headers" mb-5>
-      {{ errorMessage }}
+    <c-alert v-if="error" type="error" title="The tool could not read the headers" mb-5>
+      {{ getErrorMessage(error) }}
     </c-alert>
 
     <template v-if="echoedRequest">
+      <c-alert v-if="echoedRequest.warnings.length > 0" title="Beeceptor reported a problem with this request" mb-5>
+        <div v-for="warning in echoedRequest.warnings" :key="warning">
+          {{ warning }}
+        </div>
+      </c-alert>
+
       <c-card title="Public IP address" mb-5>
         <c-text-copyable :value="echoedRequest.ip" data-test-id="public-ip" />
       </c-card>

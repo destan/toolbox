@@ -327,7 +327,7 @@ tools:
 
   browser-headers:
     title: Browser headers
-    description: See the HTTP request headers your browser sends and your public IP address, using the Beeceptor HTTP echo service.
+    description: See the HTTP request headers that the Beeceptor HTTP echo service receives from your browser, and your public IP address.
 
   pdf-signature-checker:
     title: PDF signature checker

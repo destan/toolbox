@@ -366,6 +366,11 @@ tools:
     description: >-
       Informationen zu deinem aktuellen Gerät (Bildschirmgröße, Pixelverhältnis,
       Benutzeragent, ...) erhalten.
+  browser-headers:
+    title: Browser-Header
+    description: >-
+      Sieh dir die HTTP-Anfrage-Header an, die der HTTP-Echo-Dienst von Beeceptor
+      von deinem Browser empfängt, sowie deine öffentliche IP-Adresse.
   pdf-signature-checker:
     title: PDF-Signaturprüfer
     description: >-
