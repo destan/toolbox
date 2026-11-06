@@ -52,6 +52,7 @@ declare module 'vue' {
     'CModal.demo': typeof import('./src/ui/c-modal/c-modal.demo.vue')['default']
     CModalValue: typeof import('./src/ui/c-modal-value/c-modal-value.vue')['default']
     'CModalValue.demo': typeof import('./src/ui/c-modal-value/c-modal-value.demo.vue')['default']
+    CodeFormatter: typeof import('./src/tools/code-formatter/code-formatter.vue')['default']
     CollapsibleToolMenu: typeof import('./src/components/CollapsibleToolMenu.vue')['default']
     ColorConverter: typeof import('./src/tools/color-converter/color-converter.vue')['default']
     ColoredCard: typeof import('./src/components/ColoredCard.vue')['default']

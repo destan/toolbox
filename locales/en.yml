@@ -261,6 +261,10 @@ tools:
     title: XML formatter
     description: Prettify your XML string into a friendly, human-readable format.
 
+  code-formatter:
+    title: Code formatter
+    description: Format HTML, CSS, JavaScript, and JSON with automatic language detection and syntax highlighting.
+
   temperature-converter:
     title: Temperature converter
     description: Degrees temperature conversions for Kelvin, Celsius, Fahrenheit, Rankine, Delisle, Newton, Réaumur, and Rømer.
