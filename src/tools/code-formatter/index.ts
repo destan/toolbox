@@ -9,5 +9,6 @@ export const tool = defineTool({
   keywords: ['code', 'format', 'formatter', 'beautify', 'prettify', 'html', 'css', 'javascript', 'js', 'json'],
   component: () => import('./code-formatter.vue'),
   icon: Code,
+  wideLayout: true,
   createdAt: new Date('2026-11-06'),
 });

@@ -32,6 +32,7 @@ declare module 'vue' {
     'CButtonsSelect.demo': typeof import('./src/ui/c-buttons-select/c-buttons-select.demo.vue')['default']
     CCard: typeof import('./src/ui/c-card/c-card.vue')['default']
     'CCard.demo': typeof import('./src/ui/c-card/c-card.demo.vue')['default']
+    CCodeEditor: typeof import('./src/ui/c-code-editor/c-code-editor.vue')['default']
     CCollapse: typeof import('./src/ui/c-collapse/c-collapse.vue')['default']
     'CCollapse.demo': typeof import('./src/ui/c-collapse/c-collapse.demo.vue')['default']
     CDiffEditor: typeof import('./src/ui/c-diff-editor/c-diff-editor.vue')['default']
