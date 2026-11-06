@@ -8,6 +8,7 @@ export interface Tool {
   component: () => Promise<Component>
   icon: Component
   redirectFrom?: string[]
+  wideLayout?: boolean
   isNew: boolean
   createdAt?: Date
 }

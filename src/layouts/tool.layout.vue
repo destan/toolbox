@@ -31,7 +31,7 @@ const toolDescription = computed<string>(() => t(`tools.${i18nKey.value}.descrip
 
 <template>
   <BaseLayout>
-    <div class="tool-layout">
+    <div class="tool-layout" :class="{ 'tool-layout-wide': route.meta.wideLayout }">
       <div class="tool-header">
         <div flex flex-nowrap items-center justify-between>
           <n-h1>
@@ -51,7 +51,7 @@ const toolDescription = computed<string>(() => t(`tools.${i18nKey.value}.descrip
       </div>
     </div>
 
-    <div class="tool-content">
+    <div class="tool-content" :class="{ 'tool-content-wide': route.meta.wideLayout }">
       <slot />
     </div>
   </BaseLayout>
@@ -103,5 +103,36 @@ const toolDescription = computed<string>(() => t(`tools.${i18nKey.value}.descrip
       opacity: 0.7;
     }
   }
+}
+
+.tool-layout-wide,
+.tool-content-wide {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.tool-layout-wide .tool-header {
+  padding: 32px 0 24px;
+
+  .n-h1 {
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.8px;
+  }
+
+  .separator {
+    display: none;
+  }
+
+  .description {
+    margin-top: 10px;
+    max-width: 640px;
+  }
+}
+
+.tool-content-wide {
+  display: block;
 }
 </style>

@@ -2,7 +2,9 @@
 import { Copy } from '@vicons/tabler';
 import { useElementSize } from '@vueuse/core';
 import hljs from 'highlight.js/lib/core';
+import cssHljs from 'highlight.js/lib/languages/css';
 import iniHljs from 'highlight.js/lib/languages/ini';
+import javascriptHljs from 'highlight.js/lib/languages/javascript';
 import jsonHljs from 'highlight.js/lib/languages/json';
 import markdownHljs from 'highlight.js/lib/languages/markdown';
 import sqlHljs from 'highlight.js/lib/languages/sql';
@@ -32,6 +34,8 @@ hljs.registerLanguage('xml', xmlHljs);
 hljs.registerLanguage('yaml', yamlHljs);
 hljs.registerLanguage('toml', iniHljs);
 hljs.registerLanguage('markdown', markdownHljs);
+hljs.registerLanguage('css', cssHljs);
+hljs.registerLanguage('javascript', javascriptHljs);
 
 const { value, language, followHeightOf, copyPlacement, copyMessage } = toRefs(props);
 const { height } = followHeightOf.value ? useElementSize(followHeightOf) : { height: ref(null) };
