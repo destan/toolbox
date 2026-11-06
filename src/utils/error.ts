@@ -15,7 +15,7 @@ function getErrorMessage(err: unknown) {
     return (err as { message: string }).message;
   }
 
-  return 'An error as occurred.';
+  return 'An error has occurred.';
 }
 
 function getErrorMessageIfThrows(cb: () => unknown) {

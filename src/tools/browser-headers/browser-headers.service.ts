@@ -17,7 +17,7 @@ export interface EchoedRequest {
 interface EchoBody {
   ip: string
   headers: Record<string, string>
-  warnings?: string[]
+  warnings?: string[] | null
 }
 
 function isEchoBody(body: unknown): body is EchoBody {
@@ -25,15 +25,14 @@ function isEchoBody(body: unknown): body is EchoBody {
     return false;
   }
 
-  const { ip, headers, warnings = [] } = body as Record<string, unknown>;
+  const { ip, headers, warnings } = body as Record<string, unknown>;
 
   return _.isString(ip)
     && ip !== ''
     && _.isPlainObject(headers)
     && !_.isEmpty(headers)
-    && _.every(headers as object, _.isString)
-    && _.isArray(warnings)
-    && _.every(warnings, _.isString);
+    && Object.values(headers as object).every(_.isString)
+    && (_.isNil(warnings) || (_.isArray(warnings) && warnings.every(_.isString)));
 }
 
 export function parseEchoedRequest(body: unknown): EchoedRequest {
@@ -55,7 +54,7 @@ function toRequestError(error: unknown): Error {
     case 'TimeoutError':
       return new Error(`Beeceptor did not respond within ${REQUEST_TIMEOUT_MS / 1000} seconds. Try again later.`);
     default:
-      return new Error('The browser could not reach Beeceptor. Check your network connection and any content blocker, then try again.');
+      return new Error('The browser could not reach Beeceptor. Check your network connection and any content blocker, then try again. Beeceptor may also be rate limiting requests.', { cause: error });
   }
 }
 

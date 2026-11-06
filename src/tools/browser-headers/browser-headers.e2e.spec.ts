@@ -77,18 +77,26 @@ test.describe('Tool - Browser headers', () => {
 
     await page.getByRole('button', { name: 'Show my headers' }).click();
     await expect(page.getByRole('button', { name: 'Reading headers...' })).toHaveClass(/disabled/);
+    await expect(page.getByRole('button', { name: 'Reading headers...' })).toHaveAttribute('aria-disabled', 'true');
+    await expect(page.getByTestId('status')).toHaveText('Reading headers');
 
     releaseResponse();
     await expect(page.getByRole('button', { name: 'Show my headers' })).not.toHaveClass(/disabled/);
+    await expect(page.getByTestId('status')).toHaveText('The headers are ready');
   });
 
-  test('Shows an error and allows a retry when the request fails', async ({ page }) => {
+  test('Clears the error when a retry succeeds', async ({ page }) => {
     await page.route(ECHO_URL, route => route.fulfill({ status: 429, headers: corsHeaders, body: 'Too many requests' }));
+    await page.getByRole('button', { name: 'Show my headers' }).click();
+    await expect(page.getByText('Beeceptor responded with HTTP status 429.')).toBeVisible();
+    await expect(page.getByTestId('status')).toHaveText('The tool could not read the headers');
 
+    await page.unroute(ECHO_URL);
+    await page.route(ECHO_URL, route => route.fulfill({ headers: corsHeaders, json: echoBody }));
     await page.getByRole('button', { name: 'Show my headers' }).click();
 
-    await expect(page.getByText('Beeceptor responded with HTTP status 429.')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Show my headers' })).not.toHaveClass(/disabled/);
+    await expect(page.getByTestId('public-ip')).toContainText('203.0.113.7');
+    await expect(page.getByText('Beeceptor responded with HTTP status 429.')).toBeHidden();
   });
 
   test('Keeps the previous result when a retry fails', async ({ page }) => {
@@ -101,6 +109,7 @@ test.describe('Tool - Browser headers', () => {
     await page.getByRole('button', { name: 'Show my headers' }).click();
 
     await expect(page.getByText('Beeceptor responded with HTTP status 503.')).toBeVisible();
+    await expect(page.getByText('The result below comes from the previous request.')).toBeVisible();
     await expect(page.getByTestId('public-ip')).toContainText('203.0.113.7');
   });
 });

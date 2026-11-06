@@ -30,6 +30,10 @@ describe('browser-headers', () => {
       expect(parseEchoedRequest({ ...echoBody, warnings: ['Duplicate headers found: x-dup'] }).warnings).toEqual(['Duplicate headers found: x-dup']);
     });
 
+    it('treats null warnings as no warnings', () => {
+      expect(parseEchoedRequest({ ...echoBody, warnings: null }).warnings).toEqual([]);
+    });
+
     it('accepts a header with an empty value', () => {
       expect(parseEchoedRequest({ ip: '203.0.113.7', headers: { 'X-Empty': '' } }).headers).toEqual([{ name: 'X-Empty', value: '' }]);
     });
@@ -45,6 +49,7 @@ describe('browser-headers', () => {
       ['headers that are an array', { ip: '203.0.113.7', headers: ['Accept'] }],
       ['a null header value', { ip: '203.0.113.7', headers: { 'X-Test': null } }],
       ['an object header value', { ip: '203.0.113.7', headers: { 'X-Test': { a: 1 } } }],
+      ['an object header value next to a numeric length', { ip: '203.0.113.7', headers: { 'length': 0, 'X-Test': { a: 1 } } }],
       ['warnings that are not strings', { ...echoBody, warnings: [1] }],
     ])('rejects %s', (_, body) => {
       expect(() => parseEchoedRequest(body)).toThrow(unexpectedResponseMessage);
@@ -79,10 +84,15 @@ describe('browser-headers', () => {
       await expect(fetchEchoedRequest()).rejects.toThrow('Beeceptor did not respond within 10 seconds. Try again later.');
     });
 
-    it('reports a network failure', async () => {
-      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
+    it('reports a network failure and keeps the original error as the cause', async () => {
+      const networkError = new TypeError('Failed to fetch');
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(networkError));
 
-      await expect(fetchEchoedRequest()).rejects.toThrow('The browser could not reach Beeceptor.');
+      const error = await fetchEchoedRequest().catch(rejection => rejection);
+
+      expect(error.message).toContain('The browser could not reach Beeceptor.');
+      expect(error.message).toContain('rate limiting');
+      expect(error.cause).toBe(networkError);
     });
   });
 

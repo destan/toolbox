@@ -10,7 +10,7 @@ describe('error util', () => {
     });
 
     it('falls back to a generic message for any other value', () => {
-      expect(getErrorMessage(42)).to.equal('An error as occurred.');
+      expect(getErrorMessage(42)).to.equal('An error has occurred.');
     });
   });
 
