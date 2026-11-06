@@ -317,6 +317,10 @@ tools:
     title: 设备信息
     description: 获取有关当前设备的信息（屏幕大小、像素比率、用户代理…）
 
+  browser-headers:
+    title: 浏览器请求头
+    description: 查看 Beeceptor HTTP 回显服务从您的浏览器收到的 HTTP 请求头，以及您的公网 IP 地址。
+
   pdf-signature-checker:
     title: PDF签名检查器
     description: '验证PDF文件的签名。签名的PDF文件包含一个或多个签名，可用于确定文件的内容在签名后是否已被更改。'

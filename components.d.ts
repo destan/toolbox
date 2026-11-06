@@ -22,6 +22,7 @@ declare module 'vue' {
     Bcrypt: typeof import('./src/tools/bcrypt/bcrypt.vue')['default']
     BenchmarkBuilder: typeof import('./src/tools/benchmark-builder/benchmark-builder.vue')['default']
     Bip39Generator: typeof import('./src/tools/bip39-generator/bip39-generator.vue')['default']
+    BrowserHeaders: typeof import('./src/tools/browser-headers/browser-headers.vue')['default']
     CAlert: typeof import('./src/ui/c-alert/c-alert.vue')['default']
     'CAlert.demo': typeof import('./src/ui/c-alert/c-alert.demo.vue')['default']
     CameraRecorder: typeof import('./src/tools/camera-recorder/camera-recorder.vue')['default']

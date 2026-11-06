@@ -8,6 +8,7 @@ import { tool as bcrypt } from './bcrypt';
 import { tool as benchmarkBuilder } from './benchmark-builder';
 
 import { tool as bip39 } from './bip39-generator';
+import { tool as browserHeaders } from './browser-headers';
 import { tool as cameraRecorder } from './camera-recorder';
 import { tool as caseConverter } from './case-converter';
 import { tool as chmodCalculator } from './chmod-calculator';
@@ -127,6 +128,7 @@ export const toolsByCategory: ToolCategory[] = [
       htmlEntities,
       urlParser,
       deviceInformation,
+      browserHeaders,
       basicAuthGenerator,
       metaTagGenerator,
       otpCodeGeneratorAndValidator,
