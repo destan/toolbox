@@ -12,7 +12,15 @@ async function editFormattedCode(page: Page, value: string) {
   await editor.focus();
   const modifier = await page.evaluate(() => navigator.userAgent.includes('Macintosh') ? 'Meta' : 'Control');
   await editor.press(`${modifier}+A`);
-  await page.keyboard.insertText(value);
+  // Firefox delivers insertText as an IME composition. Monaco cannot replace a composition that spans lines.
+  for (const [index, line] of value.split('\n').entries()) {
+    if (index > 0) {
+      await page.keyboard.press('Enter');
+    }
+    if (line) {
+      await page.keyboard.insertText(line);
+    }
+  }
 }
 
 test.describe('Tool - Code formatter', () => {
