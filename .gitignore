@@ -33,3 +33,6 @@ coverage
 /playwright/.cache/
 # Webkit with playwright creates a salt file
 salt
+
+# Claude Code worktrees
+.claude/worktrees/
