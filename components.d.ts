@@ -91,6 +91,7 @@ declare module 'vue' {
     HmacGenerator: typeof import('./src/tools/hmac-generator/hmac-generator.vue')['default']
     'Home.page': typeof import('./src/pages/Home.page.vue')['default']
     HtmlEntities: typeof import('./src/tools/html-entities/html-entities.vue')['default']
+    HtmlToMarkdown: typeof import('./src/tools/html-to-markdown/html-to-markdown.vue')['default']
     HtmlWysiwygEditor: typeof import('./src/tools/html-wysiwyg-editor/html-wysiwyg-editor.vue')['default']
     HttpStatusCodes: typeof import('./src/tools/http-status-codes/http-status-codes.vue')['default']
     IbanValidatorAndParser: typeof import('./src/tools/iban-validator-and-parser/iban-validator-and-parser.vue')['default']

@@ -27,6 +27,7 @@ import { tool as gitMemo } from './git-memo';
 import { tool as hashText } from './hash-text';
 import { tool as hmacGenerator } from './hmac-generator';
 import { tool as htmlEntities } from './html-entities';
+import { tool as htmlToMarkdown } from './html-to-markdown';
 import { tool as htmlWysiwygEditor } from './html-wysiwyg-editor';
 import { tool as httpStatusCodes } from './http-status-codes';
 import { tool as ibanValidatorAndParser } from './iban-validator-and-parser';
@@ -120,6 +121,7 @@ export const toolsByCategory: ToolCategory[] = [
       xmlToJson,
       jsonToXml,
       markdownToHtml,
+      htmlToMarkdown,
     ],
   },
   {
