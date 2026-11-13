@@ -5,6 +5,8 @@ import hljsStyle from 'highlight.js/styles/github.min.css?inline';
 import markdownit from 'markdown-it';
 import TextareaCopyable from '@/components/TextareaCopyable.vue';
 import { useCopy } from '@/composable/copy';
+import { useDownloadFileFromBase64 } from '@/composable/downloadBase64';
+import { textToBase64 } from '@/utils/base64';
 import basicStyle from './preview-basic.css?inline';
 
 const inputMarkdown = ref('');
@@ -51,13 +53,22 @@ function openPreviewInNewTab() {
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
+const htmlBase64 = computed(() => `data:text/html;base64,${textToBase64(previewDocument.value)}`);
+const markdownBase64 = computed(() => `data:text/markdown;base64,${textToBase64(inputMarkdown.value)}`);
+const { download: downloadHtml } = useDownloadFileFromBase64({ source: htmlBase64, filename: 'document.html' });
+const { download: downloadMarkdown } = useDownloadFileFromBase64({ source: markdownBase64, filename: 'document.md' });
+
 function printHtml() {
-  const w = window.open();
-  if (w === null) {
-    return;
-  }
-  w.document.body.innerHTML = outputHtml.value;
-  w.print();
+  const frame = document.createElement('iframe');
+  frame.style.cssText = 'position:fixed;width:0;height:0;border:0;visibility:hidden';
+  frame.setAttribute('sandbox', 'allow-same-origin allow-modals');
+  frame.srcdoc = previewDocument.value;
+  frame.onload = () => {
+    frame.contentWindow?.focus();
+    frame.contentWindow?.print();
+    setTimeout(() => frame.remove(), 60_000);
+  };
+  document.body.appendChild(frame);
 }
 </script>
 
@@ -124,9 +135,15 @@ function printHtml() {
       </n-tabs>
     </n-form-item>
 
-    <div flex justify-center>
-      <n-button @click="printHtml">
+    <div flex flex-wrap justify-center gap-2>
+      <n-button data-test-id="print-pdf" :disabled="inputMarkdown === ''" @click="printHtml">
         Print as PDF
+      </n-button>
+      <n-button data-test-id="download-html" :disabled="inputMarkdown === ''" @click="downloadHtml()">
+        Download as HTML
+      </n-button>
+      <n-button data-test-id="download-markdown" :disabled="inputMarkdown === ''" @click="downloadMarkdown()">
+        Download as Markdown
       </n-button>
     </div>
   </div>
