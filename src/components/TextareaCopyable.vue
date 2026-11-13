@@ -19,12 +19,14 @@ const props = withDefaults(
     language?: string
     copyPlacement?: 'top-right' | 'bottom-right' | 'outside' | 'none'
     copyMessage?: string
+    wordWrap?: boolean
   }>(),
   {
     followHeightOf: null,
     language: 'txt',
     copyPlacement: 'top-right',
     copyMessage: 'Copy to clipboard',
+    wordWrap: false,
   },
 );
 hljs.registerLanguage('sql', sqlHljs);
@@ -37,7 +39,7 @@ hljs.registerLanguage('markdown', markdownHljs);
 hljs.registerLanguage('css', cssHljs);
 hljs.registerLanguage('javascript', javascriptHljs);
 
-const { value, language, followHeightOf, copyPlacement, copyMessage } = toRefs(props);
+const { value, language, followHeightOf, copyPlacement, copyMessage, wordWrap } = toRefs(props);
 const { height } = followHeightOf.value ? useElementSize(followHeightOf) : { height: ref(null) };
 
 const { copy, isJustCopied } = useCopy({ source: value, createToast: false });
@@ -53,7 +55,7 @@ const tooltipText = computed(() => isJustCopied.value ? 'Copied!' : copyMessage.
         :style="height ? `min-height: ${height - 40 /* card padding */ + 10 /* negative margin compensation */}px` : ''"
       >
         <n-config-provider :hljs="hljs">
-          <n-code :code="value" :language="language" :trim="false" data-test-id="area-content" />
+          <n-code :code="value" :language="language" :trim="false" :word-wrap="wordWrap" data-test-id="area-content" />
         </n-config-provider>
       </n-scrollbar>
       <div absolute right-10px top-10px>
