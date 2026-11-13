@@ -94,4 +94,30 @@ Some **bold** and [link](https://example.com).
 
     expect(download.suggestedFilename()).toBe('document.md');
   });
+
+  test('Swaps to Markdown to HTML with the Markdown output as input, and keeps the HTML input for Back', async ({ page }) => {
+    await page.getByTestId('input').fill('<h1>Title</h1>');
+
+    await page.getByTestId('reverse-conversion').click();
+
+    await expect(page).toHaveURL(/\/markdown-to-html$/);
+    await expect(page.getByPlaceholder('Your Markdown content...')).toHaveValue('# Title');
+
+    await page.goBack();
+
+    await expect(page).toHaveURL(/\/html-to-markdown$/);
+    await expect(page.getByTestId('input')).toHaveValue('<h1>Title</h1>');
+  });
+
+  test('Opens Markdown to HTML without content on a modified click', async ({ page, context }) => {
+    await page.getByTestId('input').fill('<h1>Title</h1>');
+
+    const newPagePromise = context.waitForEvent('page');
+    await page.getByTestId('reverse-conversion').click({ modifiers: ['ControlOrMeta'] });
+    const newPage = await newPagePromise;
+
+    await expect(newPage).toHaveURL(/\/markdown-to-html$/);
+    await expect(newPage.getByPlaceholder('Your Markdown content...')).toHaveValue('');
+    await expect(page).toHaveURL(/\/html-to-markdown$/);
+  });
 });

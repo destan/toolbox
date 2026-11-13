@@ -49,6 +49,8 @@ about:
 favoriteButton:
   remove: 'Remove from favorites'
   add: 'Add to favorites'
+reverseConversionButton:
+  tooltip: 'Convert the other way: {tool}'
 toolCard:
   new: New
 search:

@@ -4,6 +4,7 @@ import { defineTool } from '../tool';
 export const tool = defineTool({
   name: 'Markdown to HTML',
   path: '/markdown-to-html',
+  reversePath: '/html-to-markdown',
   description: 'Convert Markdown to Html and allow to print (as PDF)',
   keywords: ['markdown', 'html', 'converter', 'pdf'],
   component: () => import('./markdown-to-html.vue'),

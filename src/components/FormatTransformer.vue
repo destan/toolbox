@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { UseValidationRule } from '@/composable/validation';
 import _ from 'lodash';
+import { useReverseConversion } from '@/composable/reverseConversion';
 import CInputText from '@/ui/c-input-text/c-input-text.vue';
 
 const props = withDefaults(
@@ -31,6 +32,7 @@ const inputElement = ref<typeof CInputText>();
 
 const input = ref(inputDefault.value);
 const output = computed(() => transformer.value(input.value));
+useReverseConversion({ input, output });
 </script>
 
 <template>

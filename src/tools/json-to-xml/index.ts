@@ -4,6 +4,7 @@ import { defineTool } from '../tool';
 export const tool = defineTool({
   name: 'JSON to XML',
   path: '/json-to-xml',
+  reversePath: '/xml-to-json',
   description: 'Convert JSON to XML',
   keywords: ['json', 'xml'],
   component: () => import('./json-to-xml.vue'),

@@ -118,6 +118,7 @@ declare module 'vue' {
     IconMdiRecord: typeof import('~icons/mdi/record')['default']
     IconMdiRefresh: typeof import('~icons/mdi/refresh')['default']
     IconMdiSearch: typeof import('~icons/mdi/search')['default']
+    IconMdiSwapHorizontal: typeof import('~icons/mdi/swap-horizontal')['default']
     IconMdiTranslate: typeof import('~icons/mdi/translate')['default']
     IconMdiTriangleDown: typeof import('~icons/mdi/triangle-down')['default']
     IconMdiVideo: typeof import('~icons/mdi/video')['default']

@@ -6,6 +6,7 @@ import markdownit from 'markdown-it';
 import TextareaCopyable from '@/components/TextareaCopyable.vue';
 import { useCopy } from '@/composable/copy';
 import { useDownloadFileFromBase64 } from '@/composable/downloadBase64';
+import { useReverseConversion } from '@/composable/reverseConversion';
 import { textToBase64 } from '@/utils/base64';
 import basicStyle from './preview-basic.css?inline';
 
@@ -14,6 +15,7 @@ const outputHtml = computed(() => {
   const md = markdownit();
   return md.render(inputMarkdown.value);
 });
+useReverseConversion({ input: inputMarkdown, output: outputHtml });
 
 const previewMd = markdownit({
   highlight: (code, language) => {

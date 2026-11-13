@@ -3,6 +3,7 @@ import TurndownService from 'turndown';
 import { gfm } from 'turndown-plugin-gfm';
 import TextareaCopyable from '@/components/TextareaCopyable.vue';
 import { useDownloadFileFromBase64 } from '@/composable/downloadBase64';
+import { useReverseConversion } from '@/composable/reverseConversion';
 import { textToBase64 } from '@/utils/base64';
 
 const turndown = new TurndownService({
@@ -19,6 +20,7 @@ turndown.remove(['script', 'style']);
 
 const inputHtml = ref('');
 const outputMarkdown = computed(() => turndown.turndown(inputHtml.value));
+useReverseConversion({ input: inputHtml, output: outputMarkdown });
 
 const softWrapEnabled = ref(true);
 

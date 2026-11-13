@@ -4,6 +4,8 @@ import { useHead } from '@unhead/vue';
 
 import { useRoute } from 'vue-router';
 import FavoriteButton from '@/components/FavoriteButton.vue';
+import { useReverseConversionStore } from '@/composable/reverseConversion';
+import { useToolStore } from '@/tools/tools.store';
 import BaseLayout from './base.layout.vue';
 
 const route = useRoute();
@@ -27,18 +29,46 @@ const { t } = useI18n();
 const i18nKey = computed<string>(() => route.path.trim().replace('/', ''));
 const toolTitle = computed<string>(() => t(`tools.${i18nKey.value}.title`, String(route.meta.name)));
 const toolDescription = computed<string>(() => t(`tools.${i18nKey.value}.description`, String(route.meta.description)));
+
+const toolStore = useToolStore();
+const reverseTool = computed(() => toolStore.tools.find(({ path }) => path === route.meta.reversePath));
+const reverseConversionTooltip = computed(() => t('reverseConversionButton.tooltip', { tool: reverseTool.value?.name }));
+const reverseConversionStore = useReverseConversionStore();
+
+// A modified or non-primary click opens a new tab, and a new tab cannot read this tab's memory.
+function swapToReverseTool(event: MouseEvent) {
+  if (!reverseTool.value || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+    return;
+  }
+
+  reverseConversionStore.swap({ fromPath: route.path, toPath: reverseTool.value.path });
+}
 </script>
 
 <template>
   <BaseLayout>
     <div class="tool-layout" :class="{ 'tool-layout-wide': route.meta.wideLayout }">
       <div class="tool-header">
-        <div flex flex-nowrap items-center justify-between>
-          <n-h1>
+        <div flex flex-wrap items-center gap-x-4 gap-y-2>
+          <n-h1 flex-1>
             {{ toolTitle }}
           </n-h1>
 
-          <div>
+          <div ml-auto flex flex-nowrap items-center gap-1>
+            <c-tooltip v-if="reverseTool" :tooltip="reverseConversionTooltip">
+              <c-button
+                variant="text"
+                size="small"
+                :to="reverseTool.path"
+                :aria-label="reverseConversionTooltip"
+                data-test-id="reverse-conversion"
+                whitespace-nowrap
+                @click="swapToReverseTool"
+              >
+                <icon-mdi-swap-horizontal mr-1 flex-shrink-0 />
+                {{ reverseTool.name }}
+              </c-button>
+            </c-tooltip>
             <FavoriteButton :tool="{ name: route.meta.name, path: route.path } as Tool" />
           </div>
         </div>
