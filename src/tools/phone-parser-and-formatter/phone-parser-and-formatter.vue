@@ -6,6 +6,7 @@ import { booleanToHumanReadable } from '@/utils/boolean';
 import { withDefaultOnError } from '@/utils/defaults';
 import {
   formatTypeToHumanReadable,
+  getCountryFlag,
   getDefaultCountryCode,
   getFullCountryName,
 } from './phone-parser-and-formatter.models';
@@ -41,6 +42,7 @@ const parsedDetails = computed(() => {
     {
       label: 'Country',
       value: getFullCountryName(parsed.country),
+      flag: getCountryFlag(parsed.country),
     },
     {
       label: 'Country calling code',
@@ -78,7 +80,7 @@ const parsedDetails = computed(() => {
 });
 
 const countriesOptions = getCountries().map(code => ({
-  label: `${lookup.byIso(code)?.country || code} (+${getCountryCallingCode(code)})`,
+  label: `${getCountryFlag(code) ?? ''} ${lookup.byIso(code)?.country || code} (+${getCountryCallingCode(code)})`.trim(),
   value: code,
 }));
 </script>
@@ -97,11 +99,12 @@ const countriesOptions = getCountries().map(code => ({
 
     <n-table v-if="parsedDetails">
       <tbody>
-        <tr v-for="{ label, value } in parsedDetails" :key="label">
+        <tr v-for="{ label, value, flag } in parsedDetails" :key="label">
           <td font-bold>
             {{ label }}
           </td>
           <td>
+            <span v-if="value && flag" mr-2>{{ flag }}</span>
             <span-copyable v-if="value" :value="value" />
             <span v-else op-70>
               Unknown

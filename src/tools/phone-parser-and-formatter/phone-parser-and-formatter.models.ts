@@ -1,7 +1,7 @@
 import type { CountryCode, NumberType } from 'libphonenumber-js';
 import lookup from 'country-code-lookup';
 
-export { formatTypeToHumanReadable, getDefaultCountryCode, getFullCountryName };
+export { formatTypeToHumanReadable, getCountryFlag, getDefaultCountryCode, getFullCountryName };
 
 const typeToLabel: Record<NonNullable<NumberType>, string> = {
   MOBILE: 'Mobile',
@@ -31,6 +31,18 @@ function getFullCountryName(countryCode: string | undefined) {
   }
 
   return lookup.byIso(countryCode)?.country;
+}
+
+const REGIONAL_INDICATOR_OFFSET = 0x1F1E6 - 'A'.charCodeAt(0);
+
+function getCountryFlag(countryCode: string | undefined) {
+  if (!countryCode || !/^[a-z]{2}$/i.test(countryCode)) {
+    return undefined;
+  }
+
+  return [...countryCode.toUpperCase()]
+    .map(letter => String.fromCodePoint(letter.charCodeAt(0) + REGIONAL_INDICATOR_OFFSET))
+    .join('');
 }
 
 function getDefaultCountryCode({
