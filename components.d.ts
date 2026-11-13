@@ -111,6 +111,7 @@ declare module 'vue' {
     IconMdiDeleteSweepOutline: typeof import('~icons/mdi/delete-sweep-outline')['default']
     IconMdiDownload: typeof import('~icons/mdi/download')['default']
     IconMdiEye: typeof import('~icons/mdi/eye')['default']
+    IconMdiEyedropper: typeof import('~icons/mdi/eyedropper')['default']
     IconMdiEyeOff: typeof import('~icons/mdi/eye-off')['default']
     IconMdiHeart: typeof import('~icons/mdi/heart')['default']
     IconMdiPause: typeof import('~icons/mdi/pause')['default']

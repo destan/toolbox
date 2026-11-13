@@ -53,7 +53,21 @@ const formats = {
   }),
 };
 
+const { isSupported: isEyeDropperSupported, open: openEyeDropper } = useEyeDropper();
+
 updateColorValue(colord('#E95420'));
+
+async function pickColorFromScreen() {
+  try {
+    const result = await openEyeDropper();
+    if (result !== undefined) {
+      updateColorValue(colord(result.sRGBHex));
+    }
+  }
+  catch {
+    // The user pressed Escape to cancel the pick.
+  }
+}
 
 function updateColorValue(value: Colord | undefined, omitLabel?: string) {
   if (value === undefined) {
@@ -97,6 +111,11 @@ function updateColorValue(value: Colord | undefined, omitLabel?: string) {
           placement="bottom-end"
           @update:value="(v:string) => updateColorValue(parse(v), key)"
         />
+        <c-tooltip v-if="isEyeDropperSupported" tooltip="Pick a color from the screen" ml-2>
+          <c-button circle variant="text" aria-label="Pick a color from the screen" data-test-id="eyedropper" @click="pickColorFromScreen">
+            <icon-mdi-eyedropper />
+          </c-button>
+        </c-tooltip>
       </n-form-item>
     </template>
   </c-card>
