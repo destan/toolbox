@@ -20,6 +20,7 @@ import { tool as dateTimeConverter } from './date-time-converter';
 import { tool as deviceInformation } from './device-information';
 import { tool as dockerRunToDockerComposeConverter } from './docker-run-to-docker-compose-converter';
 import { tool as emailNormalizer } from './email-normalizer';
+import { tool as emlHeaderParser } from './eml-header-parser';
 import { tool as emojiPicker } from './emoji-picker';
 import { tool as cypher } from './encryption';
 import { tool as etaCalculator } from './eta-calculator';
@@ -144,6 +145,7 @@ export const toolsByCategory: ToolCategory[] = [
       httpStatusCodes,
       jsonDiff,
       safelinkDecoder,
+      emlHeaderParser,
     ],
   },
   {
