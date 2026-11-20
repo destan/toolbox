@@ -18,6 +18,7 @@ import { tool as colorConverter } from './color-converter';
 import { tool as crontabGenerator } from './crontab-generator';
 import { tool as dateTimeConverter } from './date-time-converter';
 import { tool as deviceInformation } from './device-information';
+import { tool as diffFileAnalyzer } from './diff-file-analyzer';
 import { tool as dockerRunToDockerComposeConverter } from './docker-run-to-docker-compose-converter';
 import { tool as emailNormalizer } from './email-normalizer';
 import { tool as emojiPicker } from './emoji-picker';
@@ -190,6 +191,7 @@ export const toolsByCategory: ToolCategory[] = [
       emojiPicker,
       stringObfuscator,
       textDiff,
+      diffFileAnalyzer,
       numeronymGenerator,
       asciiTextDrawer,
       whitespaceCleaner,
