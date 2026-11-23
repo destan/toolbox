@@ -190,10 +190,6 @@ watch(() => route.hash, (hash) => {
 
 <template>
   <div class="jwt-debugger">
-    <c-alert mb-4>
-      <strong>Warning:</strong> JWTs are credentials, which can grant access to resources. Be careful where you paste them. All validation and debugging runs in your browser.
-    </c-alert>
-
     <div mb-4 flex justify-center>
       <c-select
         :value="algorithm"
