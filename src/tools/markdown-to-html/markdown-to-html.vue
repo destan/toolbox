@@ -1,32 +1,19 @@
 <script setup lang="ts">
 import { Copy } from '@vicons/tabler';
-import hljs from 'highlight.js/lib/common';
 import hljsStyle from 'highlight.js/styles/github.min.css?inline';
-import markdownit from 'markdown-it';
 import TextareaCopyable from '@/components/TextareaCopyable.vue';
 import { useCopy } from '@/composable/copy';
 import { useDownloadFileFromBase64 } from '@/composable/downloadBase64';
 import { useReverseConversion } from '@/composable/reverseConversion';
 import { textToBase64 } from '@/utils/base64';
+import { markdownToHtml, markdownToPreviewHtml } from './markdown-to-html.service';
 import basicStyle from './preview-basic.css?inline';
 
 const inputMarkdown = ref('');
-const outputHtml = computed(() => {
-  const md = markdownit();
-  return md.render(inputMarkdown.value);
-});
+const outputHtml = computed(() => markdownToHtml(inputMarkdown.value));
 useReverseConversion({ input: inputMarkdown, output: outputHtml });
 
-const previewMd = markdownit({
-  highlight: (code, language) => {
-    if (!language || !hljs.getLanguage(language)) {
-      return '';
-    }
-    const highlighted = hljs.highlight(code, { language, ignoreIllegals: true }).value;
-    return `<pre><code class="hljs language-${language}">${highlighted}</code></pre>`;
-  },
-});
-const previewHtml = computed(() => previewMd.render(inputMarkdown.value));
+const previewHtml = computed(() => markdownToPreviewHtml(inputMarkdown.value));
 
 const softWrapEnabled = ref(true);
 const basicStyleEnabled = ref(true);
