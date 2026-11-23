@@ -79,6 +79,7 @@ declare module 'vue' {
     DynamicValues: typeof import('./src/tools/benchmark-builder/dynamic-values.vue')['default']
     Editor: typeof import('./src/tools/html-wysiwyg-editor/editor/editor.vue')['default']
     EmailNormalizer: typeof import('./src/tools/email-normalizer/email-normalizer.vue')['default']
+    EmlHeaderParser: typeof import('./src/tools/eml-header-parser/eml-header-parser.vue')['default']
     EmojiCard: typeof import('./src/tools/emoji-picker/emoji-card.vue')['default']
     EmojiGrid: typeof import('./src/tools/emoji-picker/emoji-grid.vue')['default']
     EmojiPicker: typeof import('./src/tools/emoji-picker/emoji-picker.vue')['default']
