@@ -7,9 +7,9 @@ import GithubIcon from '~icons/mdi/github';
 
 import InfoIcon from '~icons/mdi/information-outline';
 import SunIcon from '~icons/mdi/white-balance-sunny';
-import { useFuzzySearch } from '@/composable/fuzzySearch';
 import { useStyleStore } from '@/stores/style.store';
 import { useToolStore } from '@/tools/tools.store';
+import { usePaletteSearch } from './command-palette.search';
 
 export const useCommandPaletteStore = defineStore('command-palette', () => {
   const toolStore = useToolStore();
@@ -72,17 +72,10 @@ export const useCommandPaletteStore = defineStore('command-palette', () => {
     },
   ];
 
-  const { searchResult } = useFuzzySearch({
-    search: searchPrompt,
-    data: searchOptions,
-    options: {
-      keys: [{ name: 'name', weight: 2 }, 'description', 'keywords', 'category'],
-      threshold: 0.3,
-    },
-  });
+  const { searchResult } = usePaletteSearch({ search: searchPrompt, data: searchOptions });
 
   const filteredSearchResult = computed(() =>
-    _.chain(searchResult.value).groupBy('category').mapValues(categoryOptions => _.take(categoryOptions, 5)).value());
+    _.chain(searchResult.value).groupBy('category').mapValues(categoryOptions => _.take(categoryOptions, 10)).value());
 
   return {
     filteredSearchResult,
